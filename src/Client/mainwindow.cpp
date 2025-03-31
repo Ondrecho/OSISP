@@ -129,3 +129,32 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         QWidget::keyPressEvent(event);
 }
 
+void MainWindow::mousePressEvent(QMouseEvent* event) {
+    if (event->button() == Qt::LeftButton) {
+        qDebug() << "==============LEFT PRESS===============";
+        emit mouseEventToClientThreadSignal(Mouse::LEFT_PRESS);
+    }
+    else if (event->button() == Qt::RightButton) {
+        qDebug() << "==============RIGHT PRESS==============";
+        emit mouseEventToClientThreadSignal(Mouse::RIGHT_PRESS);
+    }
+    event->accept();
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent* event) {
+    qDebug() << "================RELEASE================";
+    emit mouseEventToClientThreadSignal(Mouse::RELEASE);
+    event->accept();
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent* event) {
+    qDebug() << "=================MOVE==================";
+    emit mouseEventToClientThreadSignal(Mouse::MOVE);
+    event->accept();
+}
+
+void MainWindow::mouseDoubleClickEvent(QMouseEvent* event) {
+    qDebug() << "==============DOUBLECLICK==============";
+    emit mouseEventToClientThreadSignal(Mouse::DOUBLECLICK);
+    event->accept();
+}
