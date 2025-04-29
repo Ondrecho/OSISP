@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QMessageBox>
+#include <qt5/QtCore/qchar.h>
 
 #include "ui_dialog.h"
 #include "validator.h"

@@ -85,6 +85,7 @@ void ClientThread::run() {
 
         // Получение координат мыши
         mouse.getMousePos(&pos); // rootX = pos[0], rootY = pos[1], winX = pos[2], winY = pos[3]
+        printf("Отправка координат мыши: x=%d, y=%d\n", pos[0], pos[1]);
         sprintf(message, "%d %d", pos[0], pos[1]);
         send(sockfd_for_connect, std::to_string(strlen(message)).c_str(), 16, 0);
         send(sockfd_for_connect, message, strlen(message), 0);
