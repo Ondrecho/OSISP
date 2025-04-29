@@ -133,8 +133,7 @@ void MainWindow::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         qDebug() << "==============LEFT PRESS===============";
         emit mouseEventToClientThreadSignal(Mouse::LEFT_PRESS);
-    }
-    else if (event->button() == Qt::RightButton) {
+    } else if (event->button() == Qt::RightButton) {
         qDebug() << "==============RIGHT PRESS==============";
         emit mouseEventToClientThreadSignal(Mouse::RIGHT_PRESS);
     }
