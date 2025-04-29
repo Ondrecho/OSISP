@@ -11,5 +11,7 @@ if [ ! -d "Screenshots" ]; then
     mkdir Screenshots
 fi
 
+clear
+
 echo "Запуск сервера..."
 ./RemoteControlServer

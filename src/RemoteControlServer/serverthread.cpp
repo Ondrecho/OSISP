@@ -78,6 +78,7 @@ void ServerThread::run()
         recv(sockfd_for_connect, len, 16, MSG_WAITALL);
         recv(sockfd_for_connect, message, atoi(len), MSG_WAITALL);
         sscanf(message, "%d %d", &pos[0], &pos[1]);
+        printf("Получены координаты мыши: x=%d, y=%d\n", pos[0], pos[1]);
 
         // Обработка координат мыши
         mouse.moveMouse(pos);
