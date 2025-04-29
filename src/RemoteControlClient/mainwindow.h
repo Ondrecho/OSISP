@@ -8,6 +8,7 @@
 #include "dialog.h"
 #include "clientthread.h"
 #include "ui_mainwindow.h"
+#include "client.h"
 #include "mouse.h"
 #include "keyboard.h"
 
@@ -20,9 +21,9 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 signals:
-    void sendSettingsFromUISignal(DataConnection data);       // сигнал для отправки настроек с UI
-    void mouseEventToClientThreadSignal(int event_flag);      // сигнал для отправки события мыши
-    void keyIsPressed(int is_pressed, int key_code);          // сигнал для отправки события клавиатуры
+    void sendSettingsFromUISignal(DataConnection data);                         // сигнал для отправки настроек с UI
+    void mouseEventToClientThreadSignal(int event_flag, int realX, int realY);  // сигнал для отправки события мыши
+    void keyIsPressed(int is_pressed, int key_code);                            // сигнал для отправки события клавиатуры
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;        // перегрузка встроенных методов для отлавливания событий мыши и клавиатуры
@@ -46,9 +47,12 @@ public slots:
     void showPasswordStatusSlot(int status);                  // показать статус правильности пароля
     void connectFailedSlot();                                 // не удалось соединиться с сервером
 private:
+    QPointF mapToImage(int x, int y, const QImage &img,
+                       const QLabel *lbl);                    // Преобразует координаты из QLabel в оригинальные для QImage
     Ui::MainWindow *ui;                                       // пользовательский интерфейс
     Dialog settings;                                          // настройки
     ClientThread clientThread;                                // рабочий поток клиента
+    QImage lastScreenshot;                                    // будем хранить последний снятый сервером экран
 };
 #endif // MAINWINDOW_H
 

@@ -49,4 +49,4 @@ RESOURCES +=
 
 VERSION = 1.0.0.1
 QMAKE_TARGET_PRODUCT = RemoteControlClient
-QMAKE_TARGET_COPYRIGHT = Alexei Klimovich
+QMAKE_TARGET_COPYRIGHT = Andrew Shevchenko

@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&clientThread, &ClientThread::signalToDisconnect, this, &MainWindow::on_actionDisconnect_from_the_server_triggered);
     connect(&clientThread, &ClientThread::screenshotReady, this, &MainWindow::updateScreenshot);
     connect(&clientThread, &ClientThread::connectFailedSignal, this, &MainWindow::connectFailedSlot);
+    connect(&clientThread, &ClientThread::screenshotReady, this, &MainWindow::updateScreenshot);
     connect(this, &MainWindow::mouseEventToClientThreadSignal, &clientThread, &ClientThread::getMouseEventFromWindowSlot);
     connect(this, &MainWindow::keyIsPressed, &clientThread, &ClientThread::getKeyEventFromWindowSlot);
 }
@@ -34,10 +35,18 @@ void MainWindow::on_actionSettings_triggered() {
 }
 
 void MainWindow::updateScreenshot(QImage screenshotImage) {
-    QPixmap screenshot = QPixmap::fromImage(screenshotImage);
+    // сохраняем оригинальный снимок
+    lastScreenshot = screenshotImage;
+
+    // выводим в QLabel с сохранением пропорций
+    QPixmap pix = QPixmap::fromImage(screenshotImage);
     ui->remoteScreen_label->setScaledContents(true);
-    QPixmap scaledPixmap = screenshot.scaled(ui->remoteScreen_label->size(), Qt::KeepAspectRatio);
-    ui->remoteScreen_label->setPixmap(scaledPixmap);
+    ui->remoteScreen_label->setPixmap(
+        pix.scaled(ui->remoteScreen_label->size(), Qt::KeepAspectRatio)
+        );
+
+    qDebug() << "updateScreenshot: received"
+             << screenshotImage.width() << "x" << screenshotImage.height();
 }
 
 void MainWindow::on_actionConnect_to_server_triggered()
@@ -130,30 +139,54 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 }
 
 void MainWindow::mousePressEvent(QMouseEvent* event) {
+    // вычисляем позицию внутри QLabel
+    QPoint p = ui->remoteScreen_label->mapFrom(this, event->pos());
+    // переводим в реальные координаты изображения
+    QPointF real = mapToImage(p.x(), p.y(), lastScreenshot, ui->remoteScreen_label);
     if (event->button() == Qt::LeftButton) {
-        qDebug() << "==============LEFT PRESS===============";
-        emit mouseEventToClientThreadSignal(Mouse::LEFT_PRESS);
-    } else if (event->button() == Qt::RightButton) {
-        qDebug() << "==============RIGHT PRESS==============";
-        emit mouseEventToClientThreadSignal(Mouse::RIGHT_PRESS);
+        qDebug() << "LEFT PRESS at" << real;
+        emit mouseEventToClientThreadSignal(Mouse::LEFT_PRESS, int(real.x()), int(real.y()));
+    }
+    else if (event->button() == Qt::RightButton) {
+        qDebug() << "RIGHT PRESS at" << real;
+        emit mouseEventToClientThreadSignal(Mouse::RIGHT_PRESS, int(real.x()), int(real.y()));
     }
     event->accept();
 }
 
 void MainWindow::mouseReleaseEvent(QMouseEvent* event) {
-    qDebug() << "================RELEASE================";
-    emit mouseEventToClientThreadSignal(Mouse::RELEASE);
+    QPoint p = ui->remoteScreen_label->mapFrom(this, event->pos());
+    QPointF real = mapToImage(p.x(), p.y(), lastScreenshot, ui->remoteScreen_label);
+    qDebug() << "RELEASE at" << real;
+    emit mouseEventToClientThreadSignal(Mouse::RELEASE, int(real.x()), int(real.y()));
     event->accept();
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent* event) {
-    qDebug() << "=================MOVE==================";
-    emit mouseEventToClientThreadSignal(Mouse::MOVE);
+    QPoint p = ui->remoteScreen_label->mapFrom(this, event->pos());
+    QPointF real = mapToImage(p.x(), p.y(), lastScreenshot, ui->remoteScreen_label);
+    qDebug() << "MOVE";
+    emit mouseEventToClientThreadSignal(Mouse::MOVE, int(real.x()), int(real.y()));
     event->accept();
 }
 
 void MainWindow::mouseDoubleClickEvent(QMouseEvent* event) {
-    qDebug() << "==============DOUBLECLICK==============";
-    emit mouseEventToClientThreadSignal(Mouse::DOUBLECLICK);
+    QPoint p = ui->remoteScreen_label->mapFrom(this, event->pos());
+    QPointF real = mapToImage(p.x(), p.y(), lastScreenshot, ui->remoteScreen_label);
+    qDebug() << "DOUBLECLICK at" << real ;
+    emit mouseEventToClientThreadSignal(Mouse::DOUBLECLICK, int(real.x()), int(real.y()));
     event->accept();
+}
+
+QPointF MainWindow:: mapToImage(int x, int y, const QImage &img, const QLabel *lbl)
+{
+    QSizeF lblSize = lbl->size();
+    QSizeF imgSize = img.size();
+    // коэффициенты масштабирования
+    qreal kx = imgSize.width()  / lblSize.width();
+    qreal ky = imgSize.height() / lblSize.height();
+    QPointF p(x * kx, y * ky);
+    qDebug() << "mapToImage: label(" << x << "," << y << ") -> img("
+             << p.x() << "," << p.y() << ")";
+    return p;
 }

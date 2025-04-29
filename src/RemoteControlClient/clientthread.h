@@ -29,6 +29,9 @@ private:
     DataConnection dataConnection;              // информация для создания соединения
     Mouse mouse;                                // мышь
     Keyboard keyboard;                          // клавиатура
+    // сохраняем последние координаты для отправки
+    int lastMouseX = 0;
+    int lastMouseY = 0;
 
 public:
     explicit ClientThread(QObject* parent = nullptr);  // конструктор
@@ -39,9 +42,9 @@ public:
     void sendClientInfoToServer();                     // отправка клиентской информации серверу
 
 public slots:
-    void receiveSettingsFromUISlot(DataConnection data);          // получение введенных настроек с UI
-    void getMouseEventFromWindowSlot(int event_pos);              // получение события мыши
-    void getKeyEventFromWindowSlot(int is_pressed, int key_code); // получения события клавиатуры
+    void receiveSettingsFromUISlot(DataConnection data);                   // получение введенных настроек с UI
+void getMouseEventFromWindowSlot(int event_flag, int realX, int realY);    // получение события мыши
+    void getKeyEventFromWindowSlot(int is_pressed, int key_code);          // получения события клавиатуры
 };
 
 #endif // CLIENTTHREAD_H

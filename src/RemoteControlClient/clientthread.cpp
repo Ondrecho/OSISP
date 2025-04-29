@@ -47,75 +47,71 @@ void ClientThread::receiveScreenshot() {
 
 
 void ClientThread::run() {
-
-    // Включение клиента:
+    // Включение клиента
     client_status = 1;
 
-    //Настройка и создание сокетов:
+    // Настройка сокета и подключение
     sockfd_for_connect = Socket(AF_INET, SOCK_STREAM, 0);
     Inet_pton(AF_INET, dataConnection.server_ip.toStdString().c_str(), &server_addr.sin_addr);
     int connect_status = Connect(sockfd_for_connect, (struct sockaddr*)&server_addr, sizeof(server_addr));
-    if(connect_status == -1)
-    {
+    if (connect_status == -1) {
         emit connectFailedSignal();
         emit signalToDisconnect();
         return;
     }
 
-    //Отправка информации о клиенте серверу
+    // Отправка информации о клиенте
     sendClientInfoToServer();
 
+    // Работа с X11
     Display* display = XOpenDisplay(NULL);
-    if (display == NULL) {
+    if (!display) {
         fprintf(stderr, "Cannot open display\n");
         exit(1);
     }
 
-    // Обработка скриншотов
     int i = 0;
-    char message[100];
-    int* pos = (int*)malloc(4 * sizeof(int));  //позиция мышки
-    while(client_status)
-    {
-        // Получение очередного скриншота
+    char message[64], len[16];
+
+    while (client_status) {
+        // 1. Получаем и отображаем скриншот
         receiveScreenshot();
 
-        // Отправка статуса, что скриншот получен
+        // 2. Подтверждаем получение
         send(sockfd_for_connect, "OK", 2, 0);
 
-        // Получение координат мыши
-        mouse.getMousePos(&pos); // rootX = pos[0], rootY = pos[1], winX = pos[2], winY = pos[3]
-        printf("Отправка координат мыши: x=%d, y=%d\n", pos[0], pos[1]);
-        sprintf(message, "%d %d", pos[0], pos[1]);
-        send(sockfd_for_connect, std::to_string(strlen(message)).c_str(), 16, 0);
+        // 3. Отправляем координаты мыши (уже рассчитанные как реальные экранные X/Y)
+        sprintf(message, "%d %d", lastMouseX, lastMouseY);
+        snprintf(len, sizeof(len), "%zu", strlen(message));
+        send(sockfd_for_connect, len, 16, 0);
         send(sockfd_for_connect, message, strlen(message), 0);
-        strcpy(message, "");
 
-        // Отправка события мыши
+        qDebug("Sent mouse coordinates: x=%d, y=%d", lastMouseX, lastMouseY);
+
+        // 4. Отправляем событие мыши
         char mouse_event = mouse.getEvent_flag() + '0';
         send(sockfd_for_connect, &mouse_event, 1, MSG_NOSIGNAL);
-        mouse_event = '0';
-        mouse.setEvent_flag(Mouse::NONE);
+        qDebug() << "Sent mouse event:" << mouse_event;
+        mouse.setEvent_flag(Mouse::NONE);  // сбрасываем
 
-        // Отправка события клавиатуры
-        if(keyboard.get_event_flag() == Keyboard::IS_PRESSED)
-        {
+        // 5. Отправляем событие клавиатуры
+        if (keyboard.get_event_flag() == Keyboard::IS_PRESSED) {
             sprintf(message, "%d", keyboard.get_native_key_code());
             send(sockfd_for_connect, message, 16, 0);
+            qDebug() << "Sent key code:" << message;
             keyboard.set_event_flag(Keyboard::NOT_PRESSED);
         } else {
-            send(sockfd_for_connect, "0", 16, 0);   // отправляем признак того, что никакая клавиша не нажата
+            send(sockfd_for_connect, "0", 16, 0);
         }
 
-        msleep(1000/FPS);
-        qDebug("iterations = %d", i);
-        i++;
+        // 6. Ждём следующего кадра
+        msleep(1000 / FPS);
+        qDebug("iterations = %d", i++);
     }
 
-    // Соединение прервано:
+    // Завершаем соединение
     Close(sockfd_for_connect);
     XCloseDisplay(display);
-    free(pos);
     emit signalToDisconnect();
 }
 
@@ -153,10 +149,12 @@ void ClientThread::sendClientInfoToServer()
 }
 
 
-void ClientThread::getMouseEventFromWindowSlot(int event_flag)
+void ClientThread::getMouseEventFromWindowSlot(int event_flag, int realX, int realY)
 {
-    qDebug() << "Event flag = " << event_flag;
+    qDebug() << "Event flag =" << event_flag << "realX=" << realX << "realY=" << realY;
     mouse.setEvent_flag(event_flag);
+    lastMouseX = realX;
+    lastMouseY = realY;
 }
 
 void ClientThread::getKeyEventFromWindowSlot(int is_pressed, int key_code)

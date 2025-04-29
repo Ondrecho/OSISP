@@ -44,4 +44,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 VERSION = 1.0.0.1
 QMAKE_TARGET_PRODUCT = RemoteControlServer
-QMAKE_TARGET_COPYRIGHT = Alexei Klimovich
+QMAKE_TARGET_COPYRIGHT = Andrew Shevchenko
