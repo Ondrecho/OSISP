@@ -24,6 +24,7 @@ SOURCES += \
     dialog.cpp \
     main.cpp \
     mainwindow.cpp \
+    remotescreenlabel.cpp \
     validator.cpp
 
 HEADERS += \
@@ -34,6 +35,7 @@ HEADERS += \
     clientthread.h \
     dialog.h \
     mainwindow.h \
+    remotescreenlabel.h \
     validator.h
 
 FORMS += \

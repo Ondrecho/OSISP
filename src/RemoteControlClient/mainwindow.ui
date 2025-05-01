@@ -22,7 +22,7 @@
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QLabel" name="remoteScreen_label">
+       <widget class="RemoteScreenLabel" name="remoteScreen_label">
         <property name="enabled">
          <bool>true</bool>
         </property>

@@ -11,6 +11,7 @@
 #include "client.h"
 #include "mouse.h"
 #include "keyboard.h"
+#include "remotescreenlabel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -22,15 +23,10 @@ class MainWindow : public QMainWindow
 
 signals:
     void sendSettingsFromUISignal(DataConnection data);                         // сигнал для отправки настроек с UI
-    void mouseEventToClientThreadSignal(int event_flag, int realX, int realY);  // сигнал для отправки события мыши
     void keyIsPressed(int is_pressed, int key_code);                            // сигнал для отправки события клавиатуры
 
 protected:
-    void mousePressEvent(QMouseEvent* event) override;        // перегрузка встроенных методов для отлавливания событий мыши и клавиатуры
-    void mouseReleaseEvent(QMouseEvent* event) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
-    void mouseDoubleClickEvent(QMouseEvent* event) override;
-    void keyPressEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;                              // клавиатура
 
 public:
     MainWindow(QWidget *parent = nullptr);                    // конструктор
@@ -46,13 +42,11 @@ public slots:
     void updateScreenshot(QImage screenshot);                 // обновить скриншот на экране
     void showPasswordStatusSlot(int status);                  // показать статус правильности пароля
     void connectFailedSlot();                                 // не удалось соединиться с сервером
+
 private:
-    QPointF mapToImage(int x, int y, const QImage &img,
-                       const QLabel *lbl);                    // Преобразует координаты из QLabel в оригинальные для QImage
-    Ui::MainWindow *ui;                                       // пользовательский интерфейс
+    Ui_MainWindow *ui;                                       // пользовательский интерфейс
     Dialog settings;                                          // настройки
     ClientThread clientThread;                                // рабочий поток клиента
     QImage lastScreenshot;                                    // будем хранить последний снятый сервером экран
 };
 #endif // MAINWINDOW_H
-

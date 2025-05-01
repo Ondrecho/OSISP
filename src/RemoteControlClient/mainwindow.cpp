@@ -2,7 +2,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+    , ui(new Ui_MainWindow)
 {
     ui->setupUi(this);
     settings.setDataFromUI();  // получение настроек с UI
@@ -11,10 +11,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, &MainWindow::sendSettingsFromUISignal, &clientThread, &ClientThread::receiveSettingsFromUISlot);
     connect(&clientThread, &ClientThread::showPasswordStatusSignal, this, &MainWindow::showPasswordStatusSlot);
     connect(&clientThread, &ClientThread::signalToDisconnect, this, &MainWindow::on_actionDisconnect_from_the_server_triggered);
-    connect(&clientThread, &ClientThread::screenshotReady, this, &MainWindow::updateScreenshot);
     connect(&clientThread, &ClientThread::connectFailedSignal, this, &MainWindow::connectFailedSlot);
     connect(&clientThread, &ClientThread::screenshotReady, this, &MainWindow::updateScreenshot);
-    connect(this, &MainWindow::mouseEventToClientThreadSignal, &clientThread, &ClientThread::getMouseEventFromWindowSlot);
+    connect(ui->remoteScreen_label, &RemoteScreenLabel::mouseEvent, &clientThread, &ClientThread::getMouseEventFromWindowSlot);
     connect(this, &MainWindow::keyIsPressed, &clientThread, &ClientThread::getKeyEventFromWindowSlot);
 }
 
@@ -37,6 +36,9 @@ void MainWindow::on_actionSettings_triggered() {
 void MainWindow::updateScreenshot(QImage screenshotImage) {
     // сохраняем оригинальный снимок
     lastScreenshot = screenshotImage;
+
+    // выводим в RemoteScreenLabel для пересчёта координат
+    ui->remoteScreen_label->setScreenshot(screenshotImage);
 
     // выводим в QLabel с сохранением пропорций
     QPixmap pix = QPixmap::fromImage(screenshotImage);
@@ -136,57 +138,4 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         }
     } else
         QWidget::keyPressEvent(event);
-}
-
-void MainWindow::mousePressEvent(QMouseEvent* event) {
-    // вычисляем позицию внутри QLabel
-    QPoint p = ui->remoteScreen_label->mapFrom(this, event->pos());
-    // переводим в реальные координаты изображения
-    QPointF real = mapToImage(p.x(), p.y(), lastScreenshot, ui->remoteScreen_label);
-    if (event->button() == Qt::LeftButton) {
-        qDebug() << "LEFT PRESS at" << real;
-        emit mouseEventToClientThreadSignal(Mouse::LEFT_PRESS, int(real.x()), int(real.y()));
-    }
-    else if (event->button() == Qt::RightButton) {
-        qDebug() << "RIGHT PRESS at" << real;
-        emit mouseEventToClientThreadSignal(Mouse::RIGHT_PRESS, int(real.x()), int(real.y()));
-    }
-    event->accept();
-}
-
-void MainWindow::mouseReleaseEvent(QMouseEvent* event) {
-    QPoint p = ui->remoteScreen_label->mapFrom(this, event->pos());
-    QPointF real = mapToImage(p.x(), p.y(), lastScreenshot, ui->remoteScreen_label);
-    qDebug() << "RELEASE at" << real;
-    emit mouseEventToClientThreadSignal(Mouse::RELEASE, int(real.x()), int(real.y()));
-    event->accept();
-}
-
-void MainWindow::mouseMoveEvent(QMouseEvent* event) {
-    QPoint p = ui->remoteScreen_label->mapFrom(this, event->pos());
-    QPointF real = mapToImage(p.x(), p.y(), lastScreenshot, ui->remoteScreen_label);
-    qDebug() << "MOVE";
-    emit mouseEventToClientThreadSignal(Mouse::MOVE, int(real.x()), int(real.y()));
-    event->accept();
-}
-
-void MainWindow::mouseDoubleClickEvent(QMouseEvent* event) {
-    QPoint p = ui->remoteScreen_label->mapFrom(this, event->pos());
-    QPointF real = mapToImage(p.x(), p.y(), lastScreenshot, ui->remoteScreen_label);
-    qDebug() << "DOUBLECLICK at" << real ;
-    emit mouseEventToClientThreadSignal(Mouse::DOUBLECLICK, int(real.x()), int(real.y()));
-    event->accept();
-}
-
-QPointF MainWindow:: mapToImage(int x, int y, const QImage &img, const QLabel *lbl)
-{
-    QSizeF lblSize = lbl->size();
-    QSizeF imgSize = img.size();
-    // коэффициенты масштабирования
-    qreal kx = imgSize.width()  / lblSize.width();
-    qreal ky = imgSize.height() / lblSize.height();
-    QPointF p(x * kx, y * ky);
-    qDebug() << "mapToImage: label(" << x << "," << y << ") -> img("
-             << p.x() << "," << p.y() << ")";
-    return p;
 }
