@@ -58,3 +58,18 @@ void RemoteScreenLabel::mouseDoubleClickEvent(QMouseEvent *event) {
     qDebug() << "DOUBLECLICK at" << real;
     emit mouseEvent(Mouse::DOUBLECLICK, int(real.x()), int(real.y()));
 }
+
+void RemoteScreenLabel::wheelEvent(QWheelEvent *event)
+{
+    int delta = event->angleDelta().y();
+    int flag = Mouse::NONE;
+    if (delta > 0)
+        flag = Mouse::SCROLL_UP;
+    else if (delta < 0)
+        flag = Mouse::SCROLL_DOWN;
+
+    QPointF real = mapToImage(event->position().x(), event->position().y(), lastScreenshot, this);
+    emit mouseEvent(flag, int(real.x()), int(real.y()));
+
+    event->accept();
+}

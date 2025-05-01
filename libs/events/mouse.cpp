@@ -70,6 +70,14 @@ void Mouse::generate_mouse_event(int mouse_event)
         XTestFakeButtonEvent(display, Button1, False, CurrentTime);
         XFlush(display);
         break;
+    case SCROLL_UP:
+        XTestFakeButtonEvent(display, Button4, True, CurrentTime);
+        XTestFakeButtonEvent(display, Button4, False, CurrentTime);
+        break;
+    case SCROLL_DOWN:
+        XTestFakeButtonEvent(display, Button5, True, CurrentTime);
+        XTestFakeButtonEvent(display, Button5, False, CurrentTime);
+        break;
     }
 
     XCloseDisplay(display);

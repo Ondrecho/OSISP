@@ -14,7 +14,9 @@ public:
         RIGHT_PRESS = 2,         // нажатие ПКМ
         RELEASE = 3,             // отпускание ЛКМ
         DOUBLECLICK = 4,         // двойной клик ЛКМ
-        MOVE = 5                 // движение мышки
+        MOVE = 5,                // движение мышки
+        SCROLL_UP = 6,           // скролл вверх
+        SCROLL_DOWN = 7          // скролл вниз
     };
     void getMousePos(int** pos);                // получение позиции мышки
     void moveMouse(int* newPos);                // передвинуть мышь
