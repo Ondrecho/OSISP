@@ -49,10 +49,17 @@ void ServerThread::run()
     }
     qDebug("Клиент успешно подключен\n");
 
-    emit updateCursorSignal(0);   // тип курсора: normal
+    // получаем IP из сокета
+    char client_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, sizeof(client_ip));
+    qDebug("Connected client IP: %s", client_ip);
 
-    // Принимаем информацию от клиента - его localHostName и введенный пароль
-    receiveBasicInfoFromClient();
+    // получаем структуру клиента
+    Client client = receiveClientInfo();
+    client.set_ip(client_ip);
+
+    emit updateCursorSignal(0);
+    emit sendClientInfoSignal(QString(client.get_local_host_name()), client.get_ip());
 
     // Отправляем скриншоты:
     int i = 0;
@@ -125,13 +132,13 @@ void ServerThread::sendScreenshot()
 }
 
 
-void ServerThread::receiveBasicInfoFromClient()
+Client ServerThread::receiveClientInfo()
 {
     Client client;
     char client_size_str[MAX_SIZE_INT_STR];
     int client_size;
 
-    while(1)
+    while (true)
     {
         recv(sockfd_for_connect, client_size_str, MAX_SIZE_INT_STR, MSG_WAITALL);
         client_size = atoi(client_size_str);
@@ -139,20 +146,22 @@ void ServerThread::receiveBasicInfoFromClient()
 
         recv(sockfd_for_connect, &client, client_size, MSG_WAITALL);
         qDebug("client password = %s", client.get_password());
-        qDebug("client ip = %s", client.get_ip());
-        qDebug("client local host name = %s\n", client.get_local_host_name());
+        qDebug("client local host name = %s", client.get_local_host_name());
 
-        if(strcmp(client.get_password(), server_password) == 0)
+        if (strcmp(client.get_password(), server_password) == 0)
         {
-            QString local_host_name(client.get_local_host_name());
-            emit sendClientInfoSignal(local_host_name, client.get_ip());
-            send(sockfd_for_connect, "1", 1, 0);  //1 - all good;
+            send(sockfd_for_connect, "1", 1, 0);  // OK
             break;
         }
         else
-            send(sockfd_for_connect, "0", 1, 0);  //0 - all bad;
+        {
+            send(sockfd_for_connect, "0", 1, 0);  // WRONG
+        }
     }
+
+    return client;
 }
+
 
 
 void ServerThread::receivePasswordFromUISlot(const char* password)

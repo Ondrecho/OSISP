@@ -29,11 +29,11 @@ private:
     char server_password[MAX_SIZE_STR];               // пароль на сервере
 
 public:
-    explicit ServerThread(QObject *parent = nullptr); // конструктор
-    void run() override;                              // запуск потока
-    void closeThread();                               // закрытие потока
-    void closeSockets();                              // закрытие сокетов
-    void receiveBasicInfoFromClient();                // получение базовой информации от клиента
+    explicit ServerThread(QObject *parent = nullptr);           // конструктор
+    void run() override;                                        // запуск потока
+    void closeThread();                                         // закрытие потока
+    void closeSockets();                                        // закрытие сокетов
+    Client receiveClientInfo();                                 // получение базовой информации от клиента
 
 public slots:
     void sendScreenshot();                            // отправка скриншота на экран
