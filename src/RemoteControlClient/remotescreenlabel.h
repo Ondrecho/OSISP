@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QMouseEvent>
 #include <QImage>
+#include <QDebug>
 
 class RemoteScreenLabel : public QLabel
 {

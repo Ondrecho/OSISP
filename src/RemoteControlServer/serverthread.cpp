@@ -95,13 +95,13 @@ void ServerThread::run()
         char mouse_event_str;
         recv(sockfd_for_connect, &mouse_event_str, 1, MSG_WAITALL);
         int mouse_event = mouse_event_str - '0';
-        qDebug() << "<<<<<<<<<<<MOUSE EVENT: " << mouse_event;
+        qDebug() << "MOUSE EVENT: " << mouse_event;
         mouse.generate_mouse_event(mouse_event);
 
         // Получение события клавиатуры
         strcpy(message, "");
         recv(sockfd_for_connect, message, 16, MSG_WAITALL);
-        qDebug() << "<<<<<<<<<<<KEY CODE: " << message;
+        qDebug() << "KEY CODE: " << message;
         if(strcmp(message, "0") != 0)
         {
             int key_code = atoi(message);
@@ -119,7 +119,6 @@ void ServerThread::run()
     emit signalToTurnOff();
 }
 
-
 void ServerThread::sendScreenshot()
 {
     Screenshot screenshot;
@@ -130,7 +129,6 @@ void ServerThread::sendScreenshot()
         qDebug("Скриншот отправлен\n");
     }
 }
-
 
 Client ServerThread::receiveClientInfo()
 {
@@ -161,8 +159,6 @@ Client ServerThread::receiveClientInfo()
 
     return client;
 }
-
-
 
 void ServerThread::receivePasswordFromUISlot(const char* password)
 {
