@@ -25,6 +25,7 @@ public:
     void setEvent_flag(int newEvent_flag);      // установка события мыши
 private:
     int event_flag;              // событие мыши
+    bool left_pressed = false;   // нажата ли ЛКМ
 };
 
 #endif // MOUSE_H

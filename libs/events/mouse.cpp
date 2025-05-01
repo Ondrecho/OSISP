@@ -39,7 +39,7 @@ void Mouse::moveMouse(int* newPos)
 }
 
 void Mouse::generate_mouse_event(int mouse_event)
-{
+{    
     Display *display = XOpenDisplay(NULL);
     if (display == NULL) {
         fprintf(stderr, "Cannot open display");
@@ -49,20 +49,27 @@ void Mouse::generate_mouse_event(int mouse_event)
     switch(mouse_event)
     {
     case Mouse::NONE: break;
+
     case Mouse::LEFT_PRESS :     // генерация нажатия ЛКМ
-        XTestFakeButtonEvent(display, Button1, True, CurrentTime);
-        XTestFakeButtonEvent(display, Button1, False, CurrentTime);
-        XFlush(display);
+        if (!left_pressed) {
+            XTestFakeButtonEvent(display, Button1, True, CurrentTime);
+            left_pressed = true;
+        }
         break;
+
     case Mouse::RIGHT_PRESS:     // генерация нажатия ПКМ
         XTestFakeButtonEvent(display, Button3, True, CurrentTime);
         XTestFakeButtonEvent(display, Button3, False, CurrentTime);
         XFlush(display);
         break;
+
     case Mouse::RELEASE:         // генерация отпускания ЛКМ
-        XTestFakeButtonEvent(display, Button1, False, CurrentTime);
-        XFlush(display);
+        if (left_pressed) {
+            XTestFakeButtonEvent(display, Button1, False, CurrentTime);
+            left_pressed = false;
+        }
         break;
+
     case Mouse::DOUBLECLICK:     // генерация двойного клика ЛКМ
         XTestFakeButtonEvent(display, Button1, True, CurrentTime);
         XTestFakeButtonEvent(display, Button1, False, CurrentTime);
@@ -70,16 +77,19 @@ void Mouse::generate_mouse_event(int mouse_event)
         XTestFakeButtonEvent(display, Button1, False, CurrentTime);
         XFlush(display);
         break;
+
     case SCROLL_UP:
         XTestFakeButtonEvent(display, Button4, True, CurrentTime);
         XTestFakeButtonEvent(display, Button4, False, CurrentTime);
         break;
+
     case SCROLL_DOWN:
         XTestFakeButtonEvent(display, Button5, True, CurrentTime);
         XTestFakeButtonEvent(display, Button5, False, CurrentTime);
         break;
     }
 
+    XFlush(display);
     XCloseDisplay(display);
 }
 

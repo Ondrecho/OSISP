@@ -92,7 +92,11 @@ void ClientThread::run() {
         char mouse_event = mouse.getEvent_flag() + '0';
         send(sockfd_for_connect, &mouse_event, 1, MSG_NOSIGNAL);
         qDebug() << "Sent mouse event:" << mouse_event;
-        mouse.setEvent_flag(Mouse::NONE);  // сбрасываем
+        if (mouse.getEvent_flag() != Mouse::LEFT_PRESS &&
+            mouse.getEvent_flag() != Mouse::MOVE)
+        {
+            mouse.setEvent_flag(Mouse::NONE); // сбрасываем если ЛКМ не зажата
+        }
 
         // 5. Отправляем событие клавиатуры
         if (keyboard.get_event_flag() == Keyboard::IS_PRESSED) {
