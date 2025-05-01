@@ -14,9 +14,10 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>../../pictures/icons/client.png</normaloff>../../pictures/icons/client.png</iconset>
-  </property>
+<iconset resource="resources.qrc">
+  <normaloff>:/icons/client.png</normaloff>
+ </iconset>
+</property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
